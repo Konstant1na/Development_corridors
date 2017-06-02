@@ -2,8 +2,8 @@
 
 
 in_path1="C:/Thesis_analysis/Distances_comparison/merged_tables"
-in_path2="C:/Thesis_analysis/Development_corridors/distances_raw/t0"
-out_path="C:/Thesis_analysis/Development_corridors/conefor/commands"
+in_path2="C:/Thesis_analysis/Development_corridors/conefor/ecoregions/try/eco3"
+out_path="C:/Thesis_analysis/Development_corridors/conefor/ecoregions/try/eco3"
 
 #get dispersal distances from csv
 setwd(in_path1)
@@ -113,7 +113,7 @@ nodeCount=c()
 for (i in 1:length(Com[,1])){
   count<-length(read.table(paste0("nodes_",x[i,2],".txt"))[,1])
   #if (length(nodeList[,1])<1000){
-  line<-paste0("shell('C:/Thesis_analysis/Development_corridors/conefor/data/t0/conefor_1_0_86_bcc_x86.exe -nodeFile nodes_adj_",x[i,2],".txt -conFile distances_", x[i,2],".txt -t dist notall -confProb ",x[i,3]*conversion," 0.36788 -PC -prefix ", x[i,2],"')")  
+  line<-paste0("conefor1.0.85_64 -nodeFile nodes_adj_",x[i,2],".txt -conFile distances_", x[i,2],".txt -t dist notall -confProb ",x[i,3]*conversion," 0.36788 -PC -prefix ", x[i,2])  
   print (line)
   print (count)    
   nodeCount<-append(nodeCount,count)
@@ -124,8 +124,8 @@ for (i in 1:length(Com[,1])){
 }
 
 
-command_dframe<-data.frame(cbind(command_list,nodeCount))
+command_dframe<-data.frame(cbind(command_list))
 command_dframe
 
-write.csv(command_dframe, paste0(out_path, "/","command_line_t0.csv"),col.names=F, row.names=F )
+write.table(command_dframe, paste0(out_path, "/","command_line.bat"),col.names=F, row.names=F, quote = FALSE)
 

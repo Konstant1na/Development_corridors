@@ -27,8 +27,8 @@ dbListTables(con) #look at tables in database
 
 #STEP 2: Setting workspace####
 #choose appropriate if time period t0 or time period t1
-setwd("C:/Thesis_analysis/Development_corridors/conefor/distances/t0") ##set working directory for outputs to be sent to
-setwd("C:/Thesis_analysis/Development_corridors/conefor/distances/t1") ##set working directory for outputs to be sent to
+setwd("C:/Thesis_analysis/Development_corridors/conefor/ecoregions/try/eco1") ##set working directory for outputs to be sent to
+setwd("C:/Thesis_analysis/Development_corridors/conefor/ecoregions/try/t1") ##set working directory for outputs to be sent to
 
 getwd()#view directory
 
@@ -45,9 +45,9 @@ str(sp_status)#check it worked
 strSQL="(
 select distinct foo1.id_no1, foo1.season, foo1.count from 
   (select id_no, id_no1, season::int, count (distinct (node_id)) 
-  from  cci_2015.int_grid_pas_trees_40postcent_30agg_by_nodeids_t1 group by id_no, id_no1,season order by count desc) 
+  from  cci_2017_20km.int_grid_pas_trees_40postcent_30agg_by_nodeids_t1 group by id_no, id_no1,season order by count desc) 
   as foo1,
-  (select distinct id_no1, season from cci_2015.int_grid_pas_trees_40postcent_30agg_by_nodeids_t1 
+  (select distinct id_no1, season from cci_2017_20km.int_grid_pas_trees_40postcent_30agg_by_nodeids_t1 
   /*where impacted =-1 and not impacted = 1*/ /* and fid_corrid=6*/) 
   as foo2
 where 
@@ -181,9 +181,9 @@ t1
 signage="="
 dev_id=-1
 
-start_num=239# normally start at 1 but can start later. Later in list has less nodes to run.
-end_num=239#length(spList$id_no)
-for (i in start_num:end_num){
+#start_num=239# normally start at 1 but can start later. Later in list has less nodes to run.
+#end_num=239#length(spList$id_no)
+for (i in 1:3){
   gc()#garbage collection in casememory fills up
   id_no1<-spList$id_no1[i]
   season<-spList$season[i]
@@ -192,12 +192,14 @@ for (i in start_num:end_num){
   print(spList$count[i])
   print (i)
   strSQL=paste0(
-  "SET search_path=cci_2015,public,topology;
+  "SET search_path=cci_2017_20km, cci_2015,public,topology;
   select 
   a.area as from_area,
   b.area as to_area,
   a.wdpa as from_wdpa,
   b.wdpa as to_wdpa,
+  a.fid_corrid as from_fid_corrid,
+  b.fid_corrid as to_fid_corrid,
   a.node_id AS from_node_id, 
   b.node_id AS to_node_id,
   a.grid_id as from_grid_id,
@@ -205,20 +207,20 @@ for (i in start_num:end_num){
   a.id_no1,
   a.season
   ,st_distance(a.the_geom,b.the_geom) AS distance
-  ,case when (st_intersects((ST_ShortestLine(a.the_geom,b.the_geom)), e.the_geom))
+  /*,case when (st_intersects((ST_ShortestLine(a.the_geom,b.the_geom)), e.the_geom))
   then st_distance(a.the_geom,b.the_geom)- ST_Length(ST_Intersection((ST_ShortestLine(a.the_geom,b.the_geom)), e.the_geom))
   else 0
-  end   as dist_over_barrier
+  end   as dist_over_barrier*/
   from
-  (select area, wdpa, the_geom_azim_eq_dist as the_geom, id_no1, season::int, node_id, grid_id from int_grid_pas_trees_40postcent_30agg_by_nodeids_t1 where id_no1 =",id_no1," and season::int = ",season," and fid_corrid",signage,dev_id,")
+  (select area, wdpa, fid_corrid, the_geom_azim_eq_dist as the_geom, id_no1, season::int, node_id, grid_id from int_grid_pas_trees_40postcent_30agg_by_nodeids_t1 where id_no1 =",id_no1," and season::int = ",season," and fid_corrid",signage,dev_id,")
   as a,
-  (select area, wdpa, the_geom_azim_eq_dist as the_geom, id_no1, season::int, node_id, grid_id from int_grid_pas_trees_40postcent_30agg_by_nodeids_t1 where id_no1 =",id_no1," and season::int = ",season," and fid_corrid",signage,dev_id,")  
+  (select area, wdpa, fid_corrid, the_geom_azim_eq_dist as the_geom, id_no1, season::int, node_id, grid_id from int_grid_pas_trees_40postcent_30agg_by_nodeids_t1 where id_no1 =",id_no1," and season::int = ",season," and fid_corrid",signage,dev_id,")  
    as  b,
   (select taxon_id as id_no, final_value_to_use as mean_dist, (final_value_to_use*8*1000) as cutoff_dist from dispersal_data where taxon_id =", id_no1,") 
   as c
-  , 
+  /*, 
   (select the_geom_azim_eq_dist as the_geom, NAME, status from corridors_type_3_buff_agg) 
-  as e
+  as e*/
   where
   a.node_id > b.node_id
   and st_distance(a.the_geom,b.the_geom)<c.cutoff_dist
@@ -236,8 +238,8 @@ for (i in start_num:end_num){
   if (length(x[1,])==0){
     print("error - no links to write as outside of max distance threshold")
   }  else {
-    #write.table(x[, c("from_node_id", "to_node_id", "distance")], file = paste0("distances_",x$id_no1[1],"_",x$season[1],".txt"), sep = "\t", col.names = FALSE, row.names = FALSE, quote=F) 
-    write.table(x[, c("from_node_id", "to_node_id", "distance","dist_over_barrier")], file = paste0("distances_adj_",x$id_no1[1],"_",x$season[1],".txt"), sep = "\t", col.names = FALSE, row.names = FALSE, quote=F) 
+    write.table(x[, c("from_node_id", "to_node_id", "distance")], file = paste0("distances_",x$id_no1[1],"_",x$season[1],".txt"), sep = "\t", col.names = FALSE, row.names = FALSE, quote=F) 
+    #write.table(x[, c("from_node_id", "to_node_id", "distance","dist_over_barrier")], file = paste0("distances_adj_",x$id_no1[1],"_",x$season[1],".txt"), sep = "\t", col.names = FALSE, row.names = FALSE, quote=F) 
   }
   #clause so if only one nodes then no distances calculations are attampeted.
  if (length(x[1,])==0){
@@ -245,13 +247,13 @@ for (i in start_num:end_num){
   }  else { # create node file from distances file
     
     print (dbListResults(con)[[1]])
-    strSQL=paste0("SET search_path=cci_2015,public,topology; 
-    (select node_id, area, wdpa from int_grid_pas_trees_40postcent_30agg_by_nodeids_t1 where id_no1 =",id_no1," and season::int = ",season,")" )
+    strSQL=paste0("SET search_path=cci_2017_20km, cci_2015,public,topology; 
+    (select node_id, area, wdpa, fid_corrid from int_grid_pas_trees_40postcent_30agg_by_nodeids_t1 where id_no1 =",id_no1," and season::int = ",season,")" )
     strSQL=gsub("\n", "", strSQL)
     #print(strSQL)
     nodes<- dbSendQuery(con, strSQL)   ## Submits a sql statement
     nodes<-fetch(nodes,n=-1)
-    write.table(nodes[, c("node_id", "area", "wdpa")], file = paste0("nodes_",x$id_no1[1],"_",x$season[1],".txt"), sep = "\t", col.names = FALSE, row.names = FALSE, quote=F) 
+    write.table(nodes[, c("node_id", "area", "wdpa", "fid_corrid")], file = paste0("nodes_",x$id_no1[1],"_",x$season[1],".txt"), sep = "\t", col.names = FALSE, row.names = FALSE, quote=F) 
     rm(nodes)
     rm(distances)
     rm(x)
