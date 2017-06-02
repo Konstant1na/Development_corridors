@@ -8,7 +8,7 @@
 
 CREATE SCHEMA IF NOT EXISTS cci_2015; 
 
-SET search_path=cci_2015,public,topology;
+SET search_path=cci_2017_20km,cci_2015,public,topology;
 
 
 --find/display current path for sql processing 
@@ -58,7 +58,7 @@ from 'C:\Data\cci_connectivity\scratch\dispersal\bird_dispersal_edit.csv'  delim
 
 drop table if exists grid_pas_trees_40postcent_30agg_diss_ovr1ha_t1_clean;
 create table grid_pas_trees_40postcent_30agg_diss_ovr1ha_t1_clean as
-(select st_makevalid(st_buffer(the_geom,0)) as the_geom, nodiddiss2::int as node_id, fid_grid50 as grid_id, area_geo as area, fid_pas_in as wdpa, nodiddiss2 - nodeiddiss as impacted, fid_corrid::int as fid_corrid
+(select st_makevalid(st_buffer(the_geom,0)) as the_geom, nodiddiss3::int as node_id, fid_fnet_2 as grid_id, fid_wwf_te::int as ecoregion, area_geo as area, fid_pas_in as wdpa, nodiddiss3 - nodiddiss2 as impacted, fid_corrid::int as fid_corrid
 from grid_pas_trees_40postcent_30agg_diss_ovr1ha_t1 offset 0);
 
 
@@ -69,8 +69,8 @@ CREATE INDEX grid_pas_trees_40postcent_30agg_diss_ovr1ha_t1_clean_geom_gist ON g
 CLUSTER grid_pas_trees_40postcent_30agg_diss_ovr1ha_t1_clean USING grid_pas_trees_40postcent_30agg_diss_ovr1ha_t1_clean_geom_gist;
 ANALYZE grid_pas_trees_40postcent_30agg_diss_ovr1ha_t1_clean;
 
-select * from grid_pas_trees_40postcent_30agg_diss_ovr1ha_t1_clean limit 1000
-select * from sp_merged_all limit 1000
+select * from grid_pas_trees_40postcent_30agg_diss_ovr1ha_t1_clean limit 100;
+select * from sp_merged_all limit 100;
 
 --getting nodeids touching species
 drop table if exists int_grid_pas_trees_40postcent_30agg_by_nodeids_t1;
@@ -87,7 +87,7 @@ min(case when (wdpa>-1) then 1 else -1 end) as wdpa,
 min(case when (impacted<>0) then 1 else -1 end) as impacted,
 min(foo1.fid_corrid) as fid_corrid
 from 
-grid_pas_trees_40postcent_30agg_diss_ovr1ha_t1_clean
+(select * from grid_pas_trees_40postcent_30agg_diss_ovr1ha_t1_clean where ecoregion= 13289)
 as foo1,
 /*(select id_no, st_makevalid(st_transform(st_buffer(the_geom,0),54032)) as the_geom from forest_aves_in_africa order by id_no)*/
 /*(select spp_id as id_no, the_geom  from sp_merged_all order by spp_id limit 200) */ 
@@ -96,7 +96,7 @@ select foo1.*,
 left((REPLACE(foo1.id_no, 'sp_', '')), length((REPLACE(foo1.id_no, 'sp_', ''))) - 2)::bigint as id_no1,
 right(foo1.id_no,1)::int as season
 from 
-(select spp_id as id_no, geom as the_geom from sp_merged_all) as foo1
+(select spp_id as id_no, geom as the_geom from old_sp_merged_all) as foo1
 )
 as foo2
 where
@@ -143,3 +143,5 @@ ANALYZE int_grid_pas_trees_40postcent_30agg_by_nodeids_t1;
 
 --#############################################################################
 ---use r script instead and ignore the following
+select area, wdpa, fid_corrid, the_geom_azim_eq_dist as the_geom, id_no1, season::int, node_id, grid_id from int_grid_pas_trees_40postcent_30agg_by_nodeids_t1 limit 10
+where id_no1 =",id_no1," and season::int = ",season," and fid_corrid",signage,dev_id,")

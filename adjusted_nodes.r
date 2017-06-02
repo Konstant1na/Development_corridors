@@ -2,7 +2,7 @@
 
 ##change t0 to t1 and vice versa in row 5 and 29
 
-setwd("C:/Thesis_analysis/Development_corridors/distances_raw/t1")
+setwd("C:/Thesis_analysis/Development_corridors/conefor/ecoregions/try/eco3")
 
 file_list<- list.files()
 file_list
@@ -26,7 +26,7 @@ file_list2<- lapply(file_list2, function(x) x[c(1,2)])
 
 #write new files in the conefor folder
 sapply(names(file_list2), function(x) write.table(file_list2[[x]], 
-	file=paste0("C:/Thesis_analysis/Development_corridors/conefor/data/t1", "/",x,".txt"), 
+	file=paste0("C:/Thesis_analysis/Development_corridors/conefor/ecoregions/try/eco3", "/",x,".txt"), 
 	col.names=F, row.names=F ))
 
 

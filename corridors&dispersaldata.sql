@@ -2,8 +2,39 @@
 SET search_path=cci_2017_20km,cci_2015,public,topology;
 
 
+
 --find/display current path for sql processing 
 SHOW search_path;
+
+
+
+--importing dispersal data
+DROP TABLE IF EXISTS dispersal_data;
+CREATE TABLE dispersal_data
+(species varchar, 
+taxon_id bigint,
+fit_05 varchar,
+upr_05 varchar,
+lwr_05 varchar,
+final_value_to_use numeric,
+CONSTRAINT dispersal_data_pkey 
+primary key (taxon_id)
+)
+WITH (OIDS=FALSE);
+ALTER TABLE dispersal_data
+  OWNER TO postgres;
+
+
+
+copy dispersal_data
+(species, 
+taxon_id,
+fit_05,
+upr_05,
+lwr_05,
+final_value_to_use)
+from 'C:\Data\cci_connectivity\scratch\dispersal\bird_dispersal_edit.csv'  delimiter ',' header CSV;
+
 
 
 select *

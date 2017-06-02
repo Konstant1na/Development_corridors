@@ -130,8 +130,8 @@ ggplot(data2, aes(x=time, y=value, fill= index))+
 setwd("C:/Thesis_analysis/Development_corridors/conefor/run_1/outputs/data")
 Nimp<- read.table("NodeImportance.txt", h=TRUE)
 
-NimpS<-  aggregate(varPC0 ~ node, data=Nimp, sum)
-NimpM<- aggregate(varPC0 ~ node, data=Nimp, mean)
+NimpS<-  aggregate(. ~ node, data=Nimp, sum)
+NimpM<- aggregate(. ~ node, data=Nimp, mean)
 
 ## B) Create data frame for pie chart
 setwd("C:/Thesis_analysis/Development_corridors/conefor/run_1/outputs/data")
@@ -368,21 +368,24 @@ library(rgdal)
 library(GISTools)
 library(ggsn)
 library(maptools)
-
+library(scales)
 
 
 # Nodes	
-nodes<- readOGR(dsn="C:/Thesis_analysis/Development_corridors/GIS/inputs/flat_file", layer="Export_Output2")	
+nodes<- readOGR(dsn="C:/Thesis_analysis/Development_corridors/GIS/inputs/flat_file/t1", layer="Export_Output")	
 nodes<- gBuffer(nodes, byid=TRUE, width=0) 	
 
 nodes@data$id<- rownames(nodes@data)	
 Nodes<- fortify(nodes, region= "id")
-nodes@data<- merge(nodes@data,Imp, by.x= "nodiddiss2", by.y= "node", all.x= TRUE)
+nodes@data<- merge(nodes@data,Imp, by.x= "nodiddiss2", by.y= "node0", all.x= TRUE) #Imp from 3.
 Nodes<- merge(Nodes, nodes@data, by= "id")
-	#Nodes$varPC0[which(is.na(Nodes$varPC0))]<- 0
 
-Nodesf<- subset(Nodes, FID_corrid== "-1")
-Nodesr<- subset(Nodes, FID_corrid!= "-1")
+Nodes$vardif<- with(Nodes, varPC1-varPC0)
+
+
+	
+Nodest1<- subset(Nodes, FID_corrid== "-1")
+
 
 
 
@@ -391,12 +394,15 @@ africa<- readOGR(dsn="C:/Thesis_analysis/Development_corridors/GIS/inputs/Africa
 Africa<- fortify(africa, region="COUNTRY")
 	#Africa<- subset(Africa, long> -18 & long<13 & lat>2 &lat<13)
 
+	
 # Corridors
 corridors<- readOGR(dsn="C:/Thesis_analysis/Development_corridors/GIS/inputs/corridors", layer= "CorridorsWSG")
 Corridors<- fortify(corridors, region="ORIG_FID")
 Corridors<- subset(Corridors,id %in% c("5","6","11", "29") )
 
-# Map
+
+
+## Maps
 theme_opts <- list(theme(panel.grid.minor = element_blank(),
                              panel.grid.major = element_blank(),
                              panel.background = element_blank(),
@@ -413,17 +419,17 @@ theme_opts <- list(theme(panel.grid.minor = element_blank(),
 							 legend.title=element_text(face="bold", hjust = .5)))
 
 
-
+# Node Importance Map
 map<- ggplot(data=Africa, aes(x=long, y=lat, group=group))+
 	geom_polygon(colour = "black", size = 0.1, fill = "gray", aes(group = group))+
-	geom_polygon(data= Nodes, aes(x=long.x, y=lat.x, group=group, fill= varPC0))+
+	geom_polygon(data= Nodes, aes(x=long, y=lat.x, group=group, fill= varPC0))+
 	geom_polygon(data=Corridors, aes(x=long, y=lat, group=group, alpha=0.3), show.legend = FALSE)+
 	#geom_polygon(data=Nodesf, aes(x=long.x, y=lat.x, group=group), colour= "green4",fill ="green4")+
 	#geom_polygon(data=Nodesr, aes(x=long.x, y=lat.x, group=group),colour= "red3",fill = "red3")+
 	theme_opts+
 	scale_fill_gradientn(colours = c("green4", "yellow", "red3"),name= "Patch \nImportance\n",
-		breaks=c(15000000,286000000),labels=c("Low", "Hight"),values = rescale(c(0, 0.85,0.93,1)))+
-	labs(title = "Developmen Corridors and Importance of Forest Patces In West Africa")+
+		breaks=c(15000000,286000000),labels=c("Low", "High"),values = rescale(c(0, 0.85,0.93,1)))+
+	labs(title = "Development Corridors and Importance of Forest Patches In West Africa")+
 	guides(colour = guide_legend(nrow = 3))
 	
 #whole map	
@@ -445,6 +451,25 @@ map+coord_fixed(xlim = c(3.5,12),ylim = c(5,9.5))+
 	scalebar(location="bottomright",y.min=5.4, y.max=10, x.min=4, x.max=12, dist=50, dd2km= TRUE, model='WGS84',st.dist=0.05, st.bottom=TRUE, st.size= 2.7)+
 	north(Africa,  location="topright", scale = 0.008, symbol = 3, anchor= c(x= 12, y=9.5))+
 	theme(legend.position = c(0.05,0.35))
+
+
+## Before and After Map
+map<- ggplot(data=Africa, aes(x=long, y=lat, group=group))+
+	geom_polygon(colour = "black", size = 0.1, fill = "gray", aes(group = group))+
+	geom_polygon(data= Nodest1, aes(x=long, y=lat.x, group=group, fill= vardif))+
+	geom_polygon(data=Corridors, aes(x=long, y=lat, group=group, alpha=0.3), show.legend = FALSE)+
+	theme_opts+
+	labs(title = "Patch Importance Change Due to Development Corridors in West Africa")+
+	guides(colour = guide_legend(nrow = 3))+
+	scale_fill_gradient2( low = muted("red"), mid = "white", high = muted("green"), 
+	midpoint = 0, space = "Lab", na.value = "grey50", guide = "colourbar",
+	breaks=c(-116000000,0,1),labels=c("Decreased","Unaffected", "Increased"),name= "Patch \nImportance\n")
+
+
+
+	
+	
+	
 ################################
 
 
