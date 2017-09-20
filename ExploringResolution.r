@@ -2,13 +2,13 @@
 library(foreign)
 
 
-setwd("C:/Thesis_analysis/Development_corridors/GIS/scratch/10km")
+setwd("C:/Thesis_analysis/Development_corridors/GIS/scratch/resolution/10km")
 km10<- read.dbf("All_10km.dbf")
-setwd("C:/Thesis_analysis/Development_corridors/GIS/scratch/20km")
+setwd("C:/Thesis_analysis/Development_corridors/GIS/scratch/resolution/20km")
 km20<- read.dbf("All_20km.dbf")
-setwd("C:/Thesis_analysis/Development_corridors/GIS/scratch/30km")
+setwd("C:/Thesis_analysis/Development_corridors/GIS/scratch/resolution/30km")
 km30<- read.dbf("All_30km.dbf")
-setwd("C:/Thesis_analysis/Development_corridors/GIS/scratch/40km")
+setwd("C:/Thesis_analysis/Development_corridors/GIS/scratch/resolution/40km")
 km40<- read.dbf("All_40km.dbf")
 
 

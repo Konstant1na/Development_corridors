@@ -198,18 +198,19 @@ and foo1.season = foo2.season::int
 order by count desc
 )" 
 
-spList<- dbGetQuery(con, strSQL)   ## Submits a sql statement
+spList<- dbSentQuery(con, strSQL)   ## Submits a sql statement
 
-#spList<-fetch(spList,n=-1) ##place data in dataframe
+spList<-fetch(spList,n=-1) ##place data in dataframe
 
 head(spList)#view results
 str(spList)
 
 
+
 #STEP 6: loop through species in the list (the spList object) and for each one
 
 spList$id_no1
-for (i in 280:282){
+for (i in 1:2){
   gc()#garbage collection in casememory fills up
   id_no1<-spList$id_no1[i]
   season<-spList$season[i]

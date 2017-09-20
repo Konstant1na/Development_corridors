@@ -27,7 +27,7 @@ Nimp1<- lapply(file_list,function(x) read.table(x, h=TRUE))
 
 	### 1. PLOT PC VALUES FOR T0 AND T1 (indices data) ###
 ## load and prepare data 
-setwd("C:/Thesis_analysis/Development_corridors/conefor/run_1/outputs/data")
+setwd("C:/Thesis_analysis/Development_corridors/conefor/ecoregions/output/Cross_Niger_transition_forests")
 Ind<- read.table("Indices.txt", h=TRUE)
 setwd("C:/Thesis_analysis/Development_corridors/species_metadata")
 sp<- read.csv("spp_name_id_category_joined.csv", h=TRUE)#species info

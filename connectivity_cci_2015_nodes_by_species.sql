@@ -21,8 +21,8 @@ SHOW search_path;
 
 
 --if postgis/postgresql running locally on desktop increase access to memory (RAM) 
-SET work_mem TO 120000;
-SET maintenance_work_mem TO 120000;
+/*SET work_mem TO 120000;
+SET maintenance_work_mem TO 120000;*/
 SET client_min_messages TO DEBUG;
 
 
@@ -58,7 +58,7 @@ from 'C:\Data\cci_connectivity\scratch\dispersal\bird_dispersal_edit.csv'  delim
 
 drop table if exists grid_pas_trees_40postcent_30agg_diss_ovr1ha_t1_clean;
 create table grid_pas_trees_40postcent_30agg_diss_ovr1ha_t1_clean as
-(select st_makevalid(st_buffer(the_geom,0)) as the_geom, nodiddiss3::int as node_id, fid_fnet_2 as grid_id, fid_wwf_te::int as ecoregion, area_geo as area, fid_pas_in as wdpa, nodiddiss3 - nodiddiss2 as impacted, fid_corrid::int as fid_corrid
+(select st_makevalid(st_buffer(the_geom,0)) as the_geom, nodiddiss3::int as node_id, fid_fnet_2 as grid_id, eco_id::int as ecoregion, area_geo as area, fid_pas_in as wdpa, fid_corrid::int as fid_corrid
 from grid_pas_trees_40postcent_30agg_diss_ovr1ha_t1 offset 0);
 
 
@@ -82,12 +82,13 @@ foo2.season,
 foo1.node_id,
 foo1.grid_id,
 foo1.the_geom,
+foo1.ecoregion,
 min(foo1.area) as area,
-min(case when (wdpa>-1) then 1 else -1 end) as wdpa,
-min(case when (impacted<>0) then 1 else -1 end) as impacted,
+/*min(case when (wdpa>-1) then 1 else -1 end) as wdpa,
+min(case when (impacted<>0) then 1 else -1 end) as impacted,*/
 min(foo1.fid_corrid) as fid_corrid
 from 
-(select * from grid_pas_trees_40postcent_30agg_diss_ovr1ha_t1_clean where ecoregion= 13289)
+(select * from grid_pas_trees_40postcent_30agg_diss_ovr1ha_t1_clean where ecoregion in (31008, 30109))
 as foo1,
 /*(select id_no, st_makevalid(st_transform(st_buffer(the_geom,0),54032)) as the_geom from forest_aves_in_africa order by id_no)*/
 /*(select spp_id as id_no, the_geom  from sp_merged_all order by spp_id limit 200) */ 
@@ -96,7 +97,7 @@ select foo1.*,
 left((REPLACE(foo1.id_no, 'sp_', '')), length((REPLACE(foo1.id_no, 'sp_', ''))) - 2)::bigint as id_no1,
 right(foo1.id_no,1)::int as season
 from 
-(select spp_id as id_no, geom as the_geom from old_sp_merged_all) as foo1
+(select spp_id as id_no, geom as the_geom from sp_merged_all) as foo1
 )
 as foo2
 where
@@ -107,7 +108,8 @@ foo1.node_id,
 foo2.id_no,
 foo2.id_no1,
 foo2.season,
-foo1.grid_id
+foo1.grid_id,
+foo1.ecoregion
 ;
 
 --add in equidistant column (quicker for next steps)
@@ -125,7 +127,7 @@ drop index if exists int_grid_pas_trees_40postcent_30agg_by_nodeids_t1_index;
 create index int_grid_pas_trees_40postcent_30agg_by_nodeids_t1_index_id_no1 on int_grid_pas_trees_40postcent_30agg_by_nodeids_t1 (id_no1);
 create index int_grid_pas_trees_40postcent_30agg_by_nodeids_t1_index_season on int_grid_pas_trees_40postcent_30agg_by_nodeids_t1 (season);
 create index int_grid_pas_trees_40postcent_30agg_by_nodeids_t1_index_node_id on int_grid_pas_trees_40postcent_30agg_by_nodeids_t1 (node_id);
-create index int_grid_pas_trees_40postcent_30agg_by_nodeids_t1_index_fid_corrid on int_grid_pas_trees_40postcent_30agg_by_nodeids_t1 (fid_corrid);
+/*create index int_grid_pas_trees_40postcent_30agg_by_nodeids_t1_index_fid_corrid on int_grid_pas_trees_40postcent_30agg_by_nodeids_t1 (fid_corrid);*/
 
 
 drop index if exists  int_grid_pas_trees_40postcent_30agg_by_nodeids_t1_the_geom_azim_eq_dist_gist;

@@ -1,0 +1,14 @@
+
+
+
+#ram each objectfrom the environment uses
+sort( sapply(ls(),function(x){object.size(get(x))}))
+
+#cleans the environment
+rm(list = ls())
+
+#size of an object
+object.size(My_Data_Frame)
+
+#memory usage for your namespace, by object type
+memory.profile()
